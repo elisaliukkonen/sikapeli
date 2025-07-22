@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sika noppapeli</title>
+    <style>
+        body {
+            font-family: arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #ffb6c1;
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .setup {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .setup input, .setup select, .setup button {
+            margin: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .setup input {
+            background: rgba(255,255,255,0.9);
+            color: #333;
+        }
+        
+        .setup button {
+            background: #ff6b6b;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .setup button:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+        
+        .game-area {
+            display: none;
+            text-align: center;
+        }
+        
+        .players {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        
+        .player {
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px;
+            min-width: 150px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .player.active {
+            border-color: #ffd700;
+            background: rgba(255,215,0,0.2);
+            transform: scale(1.05);
+        }
+        
+        .player h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+        }
+        
+        .player .score {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .current-turn {
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .dice-container {
+            margin: 20px 0;
+        }
+        
+        .dice {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            background: white;
+            color: #333;
+            border-radius: 10px;
+            margin: 0 10px;
+            line-height: 60px;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .controls button {
+            margin: 10px;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .roll-btn {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .roll-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .stop-btn {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .stop-btn:hover {
+            background: #e68900;
+            transform: translateY(-2px);
+        }
+        
+        .new-game-btn {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .new-game-btn:hover {
+            background: #1976d2;
+            transform: translateY(-2px);
+        }
+        
+        .turn-score {
+            font-size: 1.5em;
+            margin: 15px 0;
+            color: #ffd700;
+        }
+        
+        .message {
+            margin: 15px 0;
+            font-size: 1.1em;
+            min-height: 25px;
+        }
+        
+        .winner {
+            background: rgba(255,215,0,0.3);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 1.5em;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .rules {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sika noppapeli</h1>
+        
+        <div class="setup" id="setup">
+            <h2>Pelin asetukset</h2>
+            <div>
+                <label>Pelaajien määrä:</label>
+                <select id="playerCount">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                </select>
+            </div>
+            
+            <div>
+                <label>Noppien määrä:</label>
+                <select id="diceCount">
+                    <option value="1">1 noppa</option>
+                    <option value="2">2 noppaa</option>
+                </select>
+            </div>
+            
+            <div>
+                <label>Voittopisteet:</label>
+                <input type="number" id="winScore" value="100" min="50" max="200">
+            </div>
+            
+            <div id="playerNames"></div>
+            
+            <button onclick="startGame()">Aloita peli</button>
+        </div>
+        
+        <div class="game-area" id="gameArea">
+            <div class="players" id="players"></div>
+            
+            <div class="current-turn">
+                <h3 id="currentPlayer">pelaaja 1</h3>
+                <div class="turn-score" id="turnScore">vuoron pisteet: 0</div>
+                <div class="dice-container" id="diceContainer"></div>
+                <div class="controls">
+                    <button class="roll-btn" onclick="rollDice()" id="rollBtn">Heitä noppaa</button>
+                    <button class="stop-btn" onclick="stopTurn()" id="stopBtn">Lopeta vuoro</button>
+                </div>
+                <div class="message" id="message"></div>
+            </div>
+            
+            <button class="new-game-btn" onclick="newGame()">Uusi peli</button>
+        </div>
+        
+        <div class="rules">
+            <h3>Säännöt</h3>
+            <p><strong>1 noppa:</strong> heitä noppaa ja kerää pisteitä. jos heiton tulos on 1, menetät vuoron pisteet. muuten voit jatkaa tai lopettaa.</p>
+            <p><strong>2 noppaa:</strong> tuplat = tuplapisteet. kaksi ykköstä = 25 pistettä. yksi ykkönen = vuoro päättyy. kolme tuplaa peräkkäin = vuoro päättyy.</p>
+        </div>
+    </div>
+
+    <script>
+        let players = [];
+        let currentPlayerIndex = 0;
+        let turnScore = 0;
+        let gameWon = false;
+        let diceCount = 1;
+        let winScore = 100;
+        let consecutiveDoubles = 0;
+
+        function updatePlayerNames() {
+            const count = parseInt(document.getElementById('playerCount').value);
+            const container = document.getElementById('playerNames');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < count; i++) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = `pelaaja ${i + 1} nimi`;
+                input.id = `player${i}`;
+                container.appendChild(input);
+            }
+        }
+
+        function startGame() {
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            diceCount = parseInt(document.getElementById('diceCount').value);
+            winScore = parseInt(document.getElementById('winScore').value);
+            
+            players = [];
+            for (let i = 0; i < playerCount; i++) {
+                const nameInput = document.getElementById(`player${i}`);
+                const name = nameInput ? nameInput.value.trim() : '';
+                players.push({
+                    name: name || `pelaaja ${i + 1}`,
+                    score: 0
+                });
+            }
+            
+            currentPlayerIndex = 0;
+            turnScore = 0;
+            gameWon = false;
+            consecutiveDoubles = 0;
+            
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const playersContainer = document.getElementById('players');
+            playersContainer.innerHTML = '';
+            
+            players.forEach((player, index) => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = `player ${index === currentPlayerIndex ? 'active' : ''}`;
+                playerDiv.innerHTML = `
+                    <h3>${player.name}</h3>
+                    <div class="score">${player.score}</div>
+                `;
+                playersContainer.appendChild(playerDiv);
+            });
+            
+            document.getElementById('currentPlayer').textContent = players[currentPlayerIndex].name + ' vuoro';
+            document.getElementById('turnScore').textContent = `vuoron pisteet: ${turnScore}`;
+            
+            if (gameWon) {
+                document.getElementById('rollBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = true;
+            }
+        }
+
+        function rollDice() {
+            if (gameWon) return;
+            
+            const diceContainer = document.getElementById('diceContainer');
+            const messageEl = document.getElementById('message');
+            diceContainer.innerHTML = '';
+            
+            let dice1 = Math.floor(Math.random() * 6) + 1;
+            let dice2 = diceCount === 2 ? Math.floor(Math.random() * 6) + 1 : 0;
+            
+            const dice1El = document.createElement('div');
+            dice1El.className = 'dice';
+            dice1El.textContent = dice1;
+            diceContainer.appendChild(dice1El);
+            
+            if (diceCount === 2) {
+                const dice2El = document.createElement('div');
+                dice2El.className = 'dice';
+                dice2El.textContent = dice2;
+                diceContainer.appendChild(dice2El);
+            }
+            
+            if (diceCount === 1) {
+                if (dice1 === 1) {
+                    messageEl.textContent = 'heitit ykkösen! vuoro päättyy.';
+                    endTurn();
+                    return;
+                }
+                turnScore += dice1;
+                messageEl.textContent = `sait ${dice1} pistettä!`;
+            } else {
+                if (dice1 === 1 && dice2 === 1) {
+                    turnScore += 25;
+                    consecutiveDoubles++;
+                    messageEl.textContent = 'kaksi ykköstä! sait 25 pistettä!';
+                    
+                    if (consecutiveDoubles >= 3) {
+                        messageEl.textContent += ' kolme tuplaa peräkkäin - vuoro päättyy!';
+                        setTimeout(endTurn, 2000);
+                        return;
+                    }
+                } else if (dice1 === 1 || dice2 === 1) {
+                    messageEl.textContent = 'heitit ykkösen! vuoro päättyy.';
+                    endTurn();
+                    return;
+                } else if (dice1 === dice2) {
+                    const points = (dice1 + dice2) * 2;
+                    turnScore += points;
+                    consecutiveDoubles++;
+                    messageEl.textContent = `tuplat! sait ${points} pistettä!`;
+                    
+                    if (consecutiveDoubles >= 3) {
+                        messageEl.textContent += ' kolme tuplaa peräkkäin - vuoro päättyy!';
+                        setTimeout(endTurn, 2000);
+                        return;
+                    }
+                } else {
+                    turnScore += dice1 + dice2;
+                    consecutiveDoubles = 0;
+                    messageEl.textContent = `sait ${dice1 + dice2} pistettä!`;
+                }
+            }
+            
+            updateDisplay();
+        }
+
+        function stopTurn() {
+            if (gameWon) return;
+            
+            players[currentPlayerIndex].score += turnScore;
+            
+            if (players[currentPlayerIndex].score >= winScore) {
+                document.getElementById('message').innerHTML = 
+                    `<div class="winner">${players[currentPlayerIndex].name} voitti ${players[currentPlayerIndex].score} pisteellä!</div>`;
+                gameWon = true;
+            }
+            
+            endTurn();
+        }
+
+        function endTurn() {
+            turnScore = 0;
+            consecutiveDoubles = 0;
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+            
+            setTimeout(() => {
+                document.getElementById('diceContainer').innerHTML = '';
+                if (!gameWon) {
+                    document.getElementById('message').textContent = '';
+                }
+                updateDisplay();
+            }, 1500);
+        }
+
+        function newGame() {
+            document.getElementById('setup').style.display = 'block';
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('rollBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = false;
+        }
+
+        document.getElementById('playerCount').addEventListener('change', updatePlayerNames);
+        updatePlayerNames();
+    </script>
+</body>
+</html>
